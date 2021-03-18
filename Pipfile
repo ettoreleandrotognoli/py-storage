@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 jsonschema = "*"
+pyyaml = "*"
 
 [dev-packages]
 autopep8 = "*"
