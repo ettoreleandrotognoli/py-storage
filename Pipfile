@@ -4,12 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+jsonschema = "*"
 
 [dev-packages]
+autopep8 = "*"
 
 [requires]
 python_version = "3.7"
-
 
 [scripts]
 test = "python -m unittest discover -s src/test/python"
