@@ -7,9 +7,11 @@ name = "pypi"
 jsonschema = "*"
 pyyaml = "*"
 toml = "*"
+gitpython = "*"
 
 [dev-packages]
 autopep8 = "*"
+faker = "*"
 
 [requires]
 python_version = "3.7"
