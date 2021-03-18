@@ -8,6 +8,7 @@ jsonschema = "*"
 pyyaml = "*"
 toml = "*"
 gitpython = "*"
+jsonpath-ng = "*"
 
 [dev-packages]
 autopep8 = "*"
