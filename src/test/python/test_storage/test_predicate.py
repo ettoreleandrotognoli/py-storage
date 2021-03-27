@@ -1,4 +1,5 @@
 from unittest import TestCase
+
 from storage.predicate import Predicates
 
 

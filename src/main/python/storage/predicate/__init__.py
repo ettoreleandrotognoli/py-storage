@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import abc
 from typing import Callable, Tuple
+
 from storage.api import Predicate, E
 
 
