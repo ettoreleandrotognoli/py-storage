@@ -1,5 +1,6 @@
 from unittest import TestCase
 
+from storage.predicate.jsonpath import JsonPath
 from storage.predicate.var import Const
 
 
@@ -68,3 +69,14 @@ class TestConst(TestCase):
     def test_le_when_equals_should_be_true(self):
         predicate = Const(2) <= Const(2)
         self.assertTrue(predicate.test(None))
+
+
+class TestJsonPath(TestCase):
+
+    def test_(self):
+        data = {
+            'name': 'Fuu',
+            'parents': ['Fuu'],
+        }
+        predicate = JsonPath.array('$.name') == JsonPath.single('$.parents')
+        predicate.test(data)
