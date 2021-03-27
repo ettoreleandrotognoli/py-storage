@@ -55,6 +55,22 @@ class Var(Generic[E, V]):
         raise NotImplementedError()
 
     @abc.abstractmethod
+    def __mul__(self, other: Var) -> Var:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def __add__(self, other: Var) -> Var:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def __sub__(self, other: Var) -> Var:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def __truediv__(self, other: Var) -> Var:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
     def value(self, item: E) -> V:
         raise NotImplementedError()
 
