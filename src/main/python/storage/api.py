@@ -6,24 +6,6 @@ E = TypeVar('E')
 V = TypeVar('V')
 
 
-class Predicate(Generic[E]):
-    @abc.abstractmethod
-    def test(self, item: E) -> bool:
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def __invert__(self) -> Predicate[E]:
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def __or__(self, other: Predicate[E]) -> Predicate[E]:
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def __and__(self, other: Predicate[E]) -> Predicate[E]:
-        raise NotImplementedError()
-
-
 class Var(Generic[E, V]):
 
     @abc.abstractmethod
@@ -71,6 +53,80 @@ class Var(Generic[E, V]):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def value(self, item: E) -> V:
+    def __pow__(self, power, modulo=None) -> Var:
         raise NotImplementedError()
 
+    @abc.abstractmethod
+    def __invert__(self) -> Var:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def __and__(self, other: Var) -> Var:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def __or__(self, other: Var) -> Var:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def __call__(self, item: E) -> V:
+        raise NotImplementedError()
+
+
+Predicate = Var[E, bool]
+
+
+class Identifier(Predicate[E]):
+
+    @abc.abstractmethod
+    def __hash__(self):
+        raise NotImplementedError()
+
+
+class Storage(abc.ABC):
+
+    @abc.abstractmethod
+    def repository_for(self, item_type: Type[E]) -> Repository[E]:
+        raise NotImplementedError()
+
+
+class MutableStorage(Storage):
+
+    @abc.abstractmethod
+    def mutable_repository_for(self, item_type: Type[E]) -> MutableRepository[E]:
+        raise NotImplementedError()
+
+
+class MutableStorageSession(MutableStorage):
+
+    @abc.abstractmethod
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        raise NotImplementedError()
+
+
+class SessionSupportStorage(MutableStorage):
+
+    @abc.abstractmethod
+    def open_session(self, message=None) -> MutableStorageSession:
+        raise NotImplementedError()
+
+
+class Repository(Generic[E]):
+
+    @abc.abstractmethod
+    def stream(self) -> Iterator[E]:
+        raise NotImplementedError()
+
+
+class MutableRepository(Generic[E]):
+    @abc.abstractmethod
+    def save(self, bunch: Iterator[E]):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def remove(self, predicate: Predicate[E]):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def clear(self):
+        raise NotImplementedError()

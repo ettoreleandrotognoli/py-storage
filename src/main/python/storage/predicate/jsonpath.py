@@ -23,7 +23,7 @@ class JsonPath(BaseVar[Any, Any]):
         return [match.value for match in self.json_path.find(item)]
 
     @abc.abstractmethod
-    def value(self, item: Any) -> Any:
+    def __call__(self, item: Any) -> Any:
         raise NotImplementedError()
 
     @staticmethod
@@ -37,13 +37,13 @@ class JsonPath(BaseVar[Any, Any]):
 
 class ArrayJsonPath(JsonPath):
 
-    def value(self, item: Any) -> Iterable[Any]:
+    def __call__(self, item: Any) -> Iterable[Any]:
         return self.find(item)
 
 
 class SingleJsonPath(JsonPath):
 
-    def value(self, item: Any) -> Any:
+    def __call__(self, item: Any) -> Any:
         for item in self.find(item):
             return item
         return None
