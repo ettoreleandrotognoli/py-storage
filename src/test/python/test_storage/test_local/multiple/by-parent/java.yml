@@ -1,0 +1,4 @@
+- language: java
+  version: 8
+- language: java
+  version: 11
