@@ -48,34 +48,34 @@ class BaseVar(Var[E, V]):
 
     @force_var
     def __mul__(self, other: Var) -> Var:
-        return ReduceArithmetic((self, other,), operator.mul)
+        return ReduceOperator((self, other,), operator.mul)
 
     @force_var
     def __add__(self, other: Var) -> Var:
-        return ReduceArithmetic((self, other,), operator.add)
+        return ReduceOperator((self, other,), operator.add)
 
     @force_var
     def __sub__(self, other: Var) -> Var:
-        return ReduceArithmetic((self, other,), operator.sub)
+        return ReduceOperator((self, other,), operator.sub)
 
     @force_var
     def __truediv__(self, other: Var) -> Var:
-        return ReduceArithmetic((self, other,), operator.truediv)
+        return ReduceOperator((self, other,), operator.truediv)
 
     @force_var
     def __pow__(self, power, modulo=None) -> Var:
-        return ReduceArithmetic((self, power,), operator.pow)
+        return ReduceOperator((self, power,), operator.pow)
 
     def __invert__(self) -> Var:
-        return NotVar(self)
+        return NotOperator(self)
 
     @force_var
     def __and__(self, other: Var) -> Var:
-        return AndPredicate((self, other,))
+        return AndOperator((self, other,))
 
     @force_var
     def __or__(self, other: Var) -> Var:
-        return OrPredicate((self, other,))
+        return OrOperator((self, other,))
 
     @abc.abstractmethod
     def __call__(self, item: E) -> V:
@@ -93,7 +93,7 @@ class Comparison(BaseVar):
         return self.op(self.var_a(item), self.var_b(item))
 
 
-class NotVar(BaseVar[E, V]):
+class NotOperator(BaseVar[E, V]):
 
     def __init__(self, inner_var: Var[E, V]):
         self.inner_var = inner_var
@@ -105,14 +105,14 @@ class NotVar(BaseVar[E, V]):
         return not self.inner_var(item)
 
 
-class OrPredicate(BaseVar[E, Any]):
+class OrOperator(BaseVar[E, Any]):
 
     def __init__(self, inner_vars: Tuple[Var[E, Any], ...]):
         self.inner_vars = inner_vars
 
     @force_var
     def __or__(self, other: Var):
-        return OrPredicate(self.inner_vars + (other,))
+        return OrOperator(self.inner_vars + (other,))
 
     def __call__(self, item: E) -> Any:
         for predicate in self.inner_vars:
@@ -122,12 +122,12 @@ class OrPredicate(BaseVar[E, Any]):
         return False
 
 
-class AndPredicate(BaseVar[E, Any]):
+class AndOperator(BaseVar[E, Any]):
     def __init__(self, inner_vars: Tuple[Var[E, Any], ...]):
         self.inner_vars = inner_vars
 
     def __and__(self, other: Predicate[E]):
-        return AndPredicate(self.inner_vars + (other,))
+        return AndOperator(self.inner_vars + (other,))
 
     def __call__(self, item: E) -> bool:
         for predicate in self.inner_vars:
@@ -136,7 +136,7 @@ class AndPredicate(BaseVar[E, Any]):
         return True
 
 
-class ReduceArithmetic(BaseVar[Any, Any]):
+class ReduceOperator(BaseVar[Any, Any]):
 
     def __init__(self, inner_vars: Tuple[Any, ...], op: Callable[[Any, Any], Any]):
         self.inner_vars = inner_vars
@@ -145,32 +145,32 @@ class ReduceArithmetic(BaseVar[Any, Any]):
     @force_var
     def __mul__(self, other: Var) -> Var:
         if self.op == operator.mul:
-            return ReduceArithmetic(self.inner_vars + (other,), self.op)
-        return ReduceArithmetic((self, other,), operator.mul)
+            return ReduceOperator(self.inner_vars + (other,), self.op)
+        return ReduceOperator((self, other,), operator.mul)
 
     @force_var
     def __add__(self, other: Var) -> Var:
         if self.op == operator.add:
-            return ReduceArithmetic(self.inner_vars + (other,), self.op)
-        return ReduceArithmetic((self, other,), operator.add)
+            return ReduceOperator(self.inner_vars + (other,), self.op)
+        return ReduceOperator((self, other,), operator.add)
 
     @force_var
     def __sub__(self, other: Var) -> Var:
         if self.op == operator.sub:
-            return ReduceArithmetic(self.inner_vars + (other,), self.op)
-        return ReduceArithmetic((self, other,), operator.sub)
+            return ReduceOperator(self.inner_vars + (other,), self.op)
+        return ReduceOperator((self, other,), operator.sub)
 
     @force_var
     def __truediv__(self, other: Var) -> Var:
         if self.op == operator.truediv:
-            return ReduceArithmetic(self.inner_vars + (other,), self.op)
-        return ReduceArithmetic((self, other,), operator.truediv)
+            return ReduceOperator(self.inner_vars + (other,), self.op)
+        return ReduceOperator((self, other,), operator.truediv)
 
     @force_var
     def __pow__(self, power, modulo=None) -> Var:
         if self.op == operator.pow:
-            return ReduceArithmetic(self.inner_vars + (power,), self.op)
-        return ReduceArithmetic((self, power,), operator.pow)
+            return ReduceOperator(self.inner_vars + (power,), self.op)
+        return ReduceOperator((self, power,), operator.pow)
 
     def __call__(self, item: E) -> V:
         return reduce(self.op, [var(item) for var in self.inner_vars])
@@ -182,49 +182,49 @@ class Const(BaseVar[Any, V]):
         self.const = const
 
     def __invert__(self) -> Var:
-        return Const(~self.const)
+        return Const(not self.const)
 
     @force_var
     def __and__(self, other: Var) -> Var:
         if isinstance(other, (Const,)):
             return Const(self.const & other.const)
-        return ReduceArithmetic((self, other,), operator.and_)
+        return ReduceOperator((self, other,), operator.and_)
 
     @force_var
     def __or__(self, other: Var) -> Var:
         if isinstance(other, (Const,)):
             return Const(self.const | other.const)
-        return ReduceArithmetic((self, other,), operator.or_)
+        return ReduceOperator((self, other,), operator.or_)
 
     @force_var
     def __mul__(self, other: Var) -> Var:
         if isinstance(other, (Const,)):
             return Const(self.const * other.const)
-        return ReduceArithmetic((self, other,), operator.mul)
+        return ReduceOperator((self, other,), operator.mul)
 
     @force_var
     def __add__(self, other: Var) -> Var:
         if isinstance(other, (Const,)):
             return Const(self.const + other.const)
-        return ReduceArithmetic((self, other,), operator.add)
+        return ReduceOperator((self, other,), operator.add)
 
     @force_var
     def __sub__(self, other: Var) -> Var:
         if isinstance(other, (Const,)):
             return Const(self.const - other.const)
-        return ReduceArithmetic((self, other,), operator.sub)
+        return ReduceOperator((self, other,), operator.sub)
 
     @force_var
     def __truediv__(self, other: Var) -> Var:
         if isinstance(other, (Const,)):
             return Const(self.const / other.const)
-        return ReduceArithmetic((self, other,), operator.truediv)
+        return ReduceOperator((self, other,), operator.truediv)
 
     @force_var
     def __pow__(self, power, modulo=None) -> Var:
         if isinstance(power, (Const,)):
-            return Const(self.const / power.const)
-        return ReduceArithmetic((self, power,), operator.pow)
+            return Const(self.const ** power.const)
+        return ReduceOperator((self, power,), operator.pow)
 
     def __call__(self, item: Any = None) -> V:
         return self.const
