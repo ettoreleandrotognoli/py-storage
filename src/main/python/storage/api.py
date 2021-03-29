@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import abc
 from typing import Generic, TypeVar, Type, Iterator
 
@@ -76,13 +77,6 @@ class Var(Generic[E, V]):
 Predicate = Var[E, bool]
 
 
-class Identifier(Predicate[E]):
-
-    @abc.abstractmethod
-    def __hash__(self):
-        raise NotImplementedError()
-
-
 class Storage(abc.ABC):
 
     @abc.abstractmethod
@@ -114,11 +108,11 @@ class SessionSupportStorage(MutableStorage):
 class Repository(Generic[E]):
 
     @abc.abstractmethod
-    def stream(self) -> Iterator[E]:
+    def stream(self, predicate: Predicate[E] = None) -> Iterator[E]:
         raise NotImplementedError()
 
 
-class MutableRepository(Generic[E]):
+class MutableRepository(Repository[E]):
     @abc.abstractmethod
     def save(self, bunch: Iterator[E]):
         raise NotImplementedError()
