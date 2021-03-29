@@ -77,6 +77,9 @@ class BaseVar(Var[E, V]):
     def __or__(self, other: Var) -> Var:
         return OrOperator((self, other,))
 
+    def cast(self, cast_fn: Callable):
+        return CastOperator(cast_fn, self)
+
     @abc.abstractmethod
     def __call__(self, item: E) -> V:
         raise NotImplementedError()
@@ -91,6 +94,21 @@ class Comparison(BaseVar):
 
     def __call__(self, item: E) -> bool:
         return self.op(self.var_a(item), self.var_b(item))
+
+
+class CastOperator(BaseVar[E, V]):
+
+    def __init__(self, cast_fn: Callable[[Any], V], inner_var: Var[E, Any]):
+        self.cast_fn = cast_fn
+        self.inner_var = inner_var
+
+    def __call__(self, item: E) -> V:
+        return self.cast_fn(self.inner_var(item))
+
+    def cast(self, cast_fn: Callable):
+        if self.cast_fn == cast_fn:
+            return self
+        return CastOperator(cast_fn, self)
 
 
 class NotOperator(BaseVar[E, V]):
@@ -225,6 +243,11 @@ class Const(BaseVar[Any, V]):
         if isinstance(power, (Const,)):
             return Const(self.const ** power.const)
         return ReduceOperator((self, power,), operator.pow)
+
+    def cast(self, cast_fn: Callable):
+        if isinstance(cast_fn, (type,)) and isinstance(self.const, cast_fn):
+            return self
+        return CastOperator(cast_fn, self)
 
     def __call__(self, item: Any = None) -> V:
         return self.const

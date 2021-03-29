@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Generic, TypeVar, Type, Iterator
+from typing import Generic, TypeVar, Type, Iterator, Callable
 
 E = TypeVar('E')
 V = TypeVar('V')
@@ -67,6 +67,10 @@ class Var(Generic[E, V]):
 
     @abc.abstractmethod
     def __or__(self, other: Var) -> Var:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def cast(self, cast_fn: Callable) -> Var:
         raise NotImplementedError()
 
     @abc.abstractmethod
