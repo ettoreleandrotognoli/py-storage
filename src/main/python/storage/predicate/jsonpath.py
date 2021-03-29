@@ -1,7 +1,6 @@
 from __future__ import annotations
-import abc
-from dataclasses import dataclass
 
+import abc
 from typing import Any, Iterable
 
 import jsonpath_ng
