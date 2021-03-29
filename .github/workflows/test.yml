@@ -1,6 +1,6 @@
 on: push
 jobs:
-  install-test:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -12,3 +12,19 @@ jobs:
         uses: VaultVulp/action-pipenv@v2.0.1
         with:
           command: run test
+  coverage:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v2
+        - name: Install dependecies
+          uses: VaultVulp/action-pipenv@v2.0.1
+          with:
+            command: install -d
+        - name: Test with Coverage
+          uses: VaultVulp/action-pipenv@v2.0.1
+          with:
+            command: run coverage
+        - name: Report Coverage
+          uses: VaultVulp/action-pipenv@v2.0.1
+          with:
+            command: run coverage-report

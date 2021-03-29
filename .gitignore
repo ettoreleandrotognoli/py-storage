@@ -2,4 +2,5 @@
 !.env
 !.gitignore
 !.github
+!.coveragerc
 *.py[cod]
