@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import Callable
+from typing import Callable, Sequence
 
 from storage.api import Predicate, E
-from storage.predicate.var import BaseVar
+from storage.predicate.var import BaseVar, Const
 
 
 class Func(BaseVar):
@@ -20,5 +20,21 @@ class Func(BaseVar):
 
 
 class Predicates:
-    ANY = Func.from_lambda(lambda _: True)
-    NONE = Func.from_lambda(lambda _: False)
+    ANY = Const(True)
+    NONE = Const(False)
+
+
+class Vars:
+
+    @staticmethod
+    def key(key: str):
+        return Func.from_lambda(lambda it: it.get(key, None))
+
+    @staticmethod
+    def keys(keys: Sequence[str]):
+        def get(item: dict):
+            for key in keys and item is not None:
+                item = item.get(key, None)
+            return item
+
+        return Func.from_lambda(get)
