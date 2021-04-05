@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from storage.local.inmemory_repository import InMemoryRepository
-from storage.predicate import Vars, Predicates
+from storage.predicate import Vars, Predicates, Sets
 
 
 class TestInMemoryRepository(TestCase):
@@ -51,3 +51,12 @@ class TestInMemoryRepository(TestCase):
         )
         read_sample = list(file_repository.stream(Vars.key("name") == "Fuu"))
         self.assertEqual(read_sample, [self.sample_content[0]])
+
+    def test_update_all(self):
+        file_repository = InMemoryRepository(
+            pk_factory=Vars.key('name'),
+            initial_data=self.sample_content,
+        )
+        file_repository.update(
+            Sets.key('name', Vars.const('Updated ') + Vars.key('name')),
+        )

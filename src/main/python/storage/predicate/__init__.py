@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Callable, Sequence
+from typing import Callable, Sequence, Any
 
-from storage.api import Predicate, E
+from storage.api import Predicate, E, Var
 from storage.predicate.var import BaseVar, Const
 
 
@@ -38,3 +38,18 @@ class Vars:
             return item
 
         return Func.from_lambda(get)
+
+    @staticmethod
+    def const(value: E) -> Var[Any, E]:
+        return Const(value)
+
+
+class Sets:
+
+    @staticmethod
+    def key(key: str, var: Var[E, Any]):
+        def set_fn(item: E) -> E:
+            item[key] = var(item)
+            return item
+
+        return set_fn

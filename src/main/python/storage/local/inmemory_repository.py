@@ -1,6 +1,7 @@
 from typing import Iterable, Iterator, Callable, Hashable
 
 from storage import MutableRepository, E, Predicate
+from storage.predicate import Predicates
 
 
 class InMemoryRepository(MutableRepository[E]):
@@ -18,6 +19,17 @@ class InMemoryRepository(MutableRepository[E]):
         for item in bunch:
             pk = self.pk_factory(item)
             self.content[pk] = item
+
+    def update(self, update_fn: Callable[[E], E], predicate: Predicate[E] = None):
+        predicate = predicate or Predicates.ANY
+        updated = dict(
+            (self.pk_factory(item), item,)
+            for item in (
+                update_fn(v) if predicate(v) else v
+                for k, v in self.content.items()
+            )
+        )
+        self.content.update(updated)
 
     def remove(self, predicate: Predicate[E]):
         keep = ~predicate

@@ -78,6 +78,13 @@ class Var(Generic[E, V]):
         raise NotImplementedError()
 
 
+class Set(Generic[E]):
+
+    @abc.abstractmethod
+    def __call__(self, item: E) -> E:
+        raise NotImplementedError()
+
+
 Predicate = Var[E, bool]
 
 
@@ -119,6 +126,10 @@ class Repository(Generic[E]):
 class MutableRepository(Repository[E]):
     @abc.abstractmethod
     def save(self, bunch: Iterator[E]):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def update(self, update_fn: Callable[[E], E], predicate: Predicate[E] = None):
         raise NotImplementedError()
 
     @abc.abstractmethod

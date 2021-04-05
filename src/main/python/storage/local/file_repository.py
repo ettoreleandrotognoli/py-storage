@@ -138,6 +138,15 @@ class FileRepository(MutableRepository[E]):
             with open(file_name, 'w+') as output_stream:
                 self.strategy.write(output_stream, [v for v in data.values()])
 
+    def update(self, update_fn: Callable[[E], E], predicate: Predicate[E] = None):
+        for file_name in self.strategy.file_stream():
+            with open(file_name, 'w+') as output_stream:
+                data = [
+                    update_fn(item) if predicate(item) else item
+                    for item in self.file_to_stream(file_name)
+                ]
+                self.strategy.write(output_stream, data)
+
     def remove(self, predicate: Predicate[E]):
         keep = ~predicate
         for file_name in self.strategy.file_stream():
