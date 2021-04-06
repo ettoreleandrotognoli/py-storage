@@ -4,8 +4,8 @@ from os import path
 from unittest import TestCase
 
 from storage.local.file_repository import FileRepository
-from storage.predicate import Vars, Const
 from storage.serializer import Serializer
+from storage.var import Vars
 
 
 class TestReadOnePerFileRepository(TestCase):

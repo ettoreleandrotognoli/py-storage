@@ -5,7 +5,8 @@ from os import path
 from unittest import TestCase
 
 from storage.local.file_repository import FileRepository, Serializer
-from storage.predicate import Predicates, Vars
+from storage.predicate import Predicates
+from storage.var import Vars
 
 
 class TestReadSingleFileRepository(TestCase):

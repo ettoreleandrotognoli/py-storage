@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from storage.predicate.jsonpath import JsonPath
-from storage.predicate.var import Const
+from storage.var.jsonpath import JsonPath
+from storage.var import Const
 
 
 class TestConst(TestCase):

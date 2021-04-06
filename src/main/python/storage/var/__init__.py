@@ -1,9 +1,13 @@
+from __future__ import annotations
+
 import abc
 import operator
 from functools import reduce, wraps
-from typing import Any, Callable, Tuple
+from typing import Callable, Sequence, Any
+from typing import Tuple
 
-from storage import Var, E, V, Predicate
+from storage import V
+from storage.api import Predicate, E, Var
 
 
 def force_var(func):
@@ -251,3 +255,36 @@ class Const(BaseVar[Any, V]):
 
     def __call__(self, item: Any = None) -> V:
         return self.const
+
+
+class Func(BaseVar):
+
+    def __init__(self, func: Callable[[E], bool]):
+        self.func = func
+
+    def __call__(self, item: E) -> bool:
+        return self.func(item)
+
+    @classmethod
+    def from_lambda(cls, func: Callable[[E], bool]) -> Predicate[E]:
+        return cls(func)
+
+
+class Vars:
+
+    @staticmethod
+    def key(key: str):
+        return Func.from_lambda(lambda it: it.get(key, None))
+
+    @staticmethod
+    def keys(keys: Sequence[str]):
+        def get(item: dict):
+            for key in keys and item is not None:
+                item = item.get(key, None)
+            return item
+
+        return Func.from_lambda(get)
+
+    @staticmethod
+    def const(value: E) -> Var[Any, E]:
+        return Const(value)

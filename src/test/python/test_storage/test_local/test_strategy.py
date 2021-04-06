@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from storage.local.file_repository import SingleFileStrategy, MultipleFileStrategy
-from storage.predicate import Vars
+from storage.var import Vars
 
 
 class TestSingleFileStrategy(TestCase):

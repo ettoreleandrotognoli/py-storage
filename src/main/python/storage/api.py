@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import abc
-from typing import Generic, TypeVar, Type, Iterator, Callable
+from dataclasses import dataclass
+from typing import Generic, TypeVar, Iterator, Callable
 
 E = TypeVar('E')
 V = TypeVar('V')
@@ -79,6 +80,10 @@ class Var(Generic[E, V]):
 
 
 class Set(Generic[E]):
+
+    @abc.abstractmethod
+    def __and__(self, other: Set[E]) -> Set[E]:
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def __call__(self, item: E) -> E:

@@ -1,14 +1,15 @@
 import abc
-from string import Formatter
 import glob
 import os
 from dataclasses import dataclass
+from string import Formatter
 from typing import Iterator, Callable, Hashable, Iterable, Dict, Any, TextIO
 
 from storage import E, Generic
 from storage.api import MutableRepository, Predicate, Repository
-from storage.predicate import Predicates, Vars
+from storage.predicate import Predicates
 from storage.serializer import Serializer
+from storage.var import Vars
 
 
 class FileStrategy(Generic[E]):

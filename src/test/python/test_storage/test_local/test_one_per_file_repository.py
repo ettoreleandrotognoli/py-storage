@@ -4,7 +4,7 @@ from os import path
 from unittest import TestCase
 
 from storage.local.file_repository import FileRepository
-from storage.predicate import Vars
+from storage.var import Vars
 from storage.serializer import Serializer
 
 

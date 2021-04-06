@@ -5,7 +5,7 @@ from typing import Any, Iterable
 
 import jsonpath_ng
 
-from storage.predicate.var import BaseVar
+from storage.var import BaseVar
 
 
 class JsonPath(BaseVar[Any, Any]):

@@ -1,7 +1,9 @@
 from unittest import TestCase
 
 from storage.local.inmemory_repository import InMemoryRepository
-from storage.predicate import Vars, Predicates, Sets
+from storage.var import Vars
+from storage.predicate import Predicates
+from storage.set import Sets
 
 
 class TestInMemoryRepository(TestCase):
