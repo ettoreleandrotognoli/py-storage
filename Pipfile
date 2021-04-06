@@ -9,6 +9,7 @@ pyyaml = "*"
 toml = "*"
 gitpython = "*"
 jsonpath-ng = "*"
+antlr4-python3-runtime = "==4.8.*"
 
 [dev-packages]
 autopep8 = "*"
@@ -24,3 +25,4 @@ coverage = "coverage run --source src/main/python -m unittest discover -s src/te
 coverage-report = "coverage report --fail-under=80"
 coverage-html-report = "coverage html"
 coverage-xml-report = "coverage xml"
+compile-antlr = "antlr4 -Dlanguage=Python3 -Xexact-output-dir -visitor -no-listener -o src/main/python/storage/query/rsql/ src/main/antlr/RSQL.g4"
