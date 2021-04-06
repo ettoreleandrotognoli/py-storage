@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import abc
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Generic, TypeVar, Iterator, Callable
 
 E = TypeVar('E')
@@ -101,21 +101,58 @@ class Setter(Generic[E]):
 Predicate = Var[E, bool]
 
 
+@dataclass()
+class ParentDescription:
+    name: str
+    parent_id: str
+
+    @classmethod
+    def from_raw(cls, raw):
+        if raw is None:
+            return None
+        return cls(
+            **raw
+        )
+
+
+@dataclass()
+class Entity(Generic[E]):
+    name: str
+    pk: str = None
+    parent: ParentDescription = None
+    singleton: bool = False
+    schema: dict = field(default_factory=dict)
+
+    @classmethod
+    def from_raw(cls, raw):
+        if raw is None:
+            return None
+        if 'parent' in raw:
+            raw['parent'] = ParentDescription.from_raw(raw['parent'])
+        return cls(
+            **raw,
+        )
+
+
 class Storage(abc.ABC):
 
     @abc.abstractmethod
-    def repository_for(self, item_type: Type[E]) -> Repository[E]:
+    def repository_for(self, item_type: Entity[E]) -> Repository[E]:
         raise NotImplementedError()
 
 
 class MutableStorage(Storage):
 
     @abc.abstractmethod
-    def mutable_repository_for(self, item_type: Type[E]) -> MutableRepository[E]:
+    def mutable_repository_for(self, item_type: Entity[E]) -> MutableRepository[E]:
         raise NotImplementedError()
 
 
 class MutableStorageSession(MutableStorage):
+
+    @abc.abstractmethod
+    def __enter__(self) -> 'self':
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def __exit__(self, exc_type, exc_val, exc_tb):

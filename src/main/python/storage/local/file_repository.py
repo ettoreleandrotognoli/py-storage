@@ -6,10 +6,16 @@ from string import Formatter
 from typing import Iterator, Callable, Hashable, Iterable, Dict, Any, TextIO
 
 from storage import E, Generic
-from storage.api import MutableRepository, Predicate, Repository
+from storage.api import MutableRepository, Predicate, Repository, Entity
 from storage.predicate import Predicates
 from storage.serializer import Serializer
 from storage.var import Vars
+
+
+class FileRepositoryListener:
+
+    def on_rewrite(self, file_name):
+        pass
 
 
 class FileStrategy(Generic[E]):
@@ -110,8 +116,19 @@ class FileRepository(MutableRepository[E]):
         def pk_for(self, item: E) -> Hashable:
             raise NotImplementedError()
 
-    def __init__(self, strategy: Strategy):
+    def __init__(self, strategy: Strategy, listeners: Iterable[FileRepositoryListener] = ()):
         self.strategy = strategy
+        self.listeners = list(listeners)
+
+    def add_listener(self, listener: FileRepositoryListener):
+        self.listeners.append(listener)
+
+    def remove_listener(self, listener: FileRepositoryListener):
+        self.listeners.remove(listener)
+
+    def fire_on_rewrite(self, file_name: str):
+        for listener in self.listeners:
+            listener.on_rewrite(file_name)
 
     def file_to_stream(self, file_name: str, predicate: Predicate[E] = None) -> Iterator[E]:
         try:
@@ -128,6 +145,12 @@ class FileRepository(MutableRepository[E]):
         for file_name in self.strategy.file_stream():
             yield from self.file_to_stream(file_name, predicate)
 
+    def rewrite(self, file_name, data):
+        os.makedirs(os.path.dirname(file_name), exist_ok=True)
+        with open(file_name, 'w+') as output_stream:
+            self.strategy.write(output_stream, data)
+        self.fire_on_rewrite(file_name)
+
     def save(self, bunch: Iterator[E]):
         items_per_files = self.strategy.group_by_file(bunch)
         for file_name in items_per_files.keys():
@@ -136,24 +159,21 @@ class FileRepository(MutableRepository[E]):
             for item in bunch:
                 identifier = self.strategy.pk_for(item)
                 data[identifier] = item
-            with open(file_name, 'w+') as output_stream:
-                self.strategy.write(output_stream, [v for v in data.values()])
+            self.rewrite(file_name, [v for v in data.values()])
 
     def update(self, update_fn: Callable[[E], E], predicate: Predicate[E] = None):
         for file_name in self.strategy.file_stream():
-            with open(file_name, 'w+') as output_stream:
-                data = [
-                    update_fn(item) if predicate(item) else item
-                    for item in self.file_to_stream(file_name)
-                ]
-                self.strategy.write(output_stream, data)
+            data = [
+                update_fn(item) if predicate(item) else item
+                for item in self.file_to_stream(file_name)
+            ]
+            self.rewrite(file_name, data)
 
     def remove(self, predicate: Predicate[E]):
         keep = ~predicate
         for file_name in self.strategy.file_stream():
-            with open(file_name, 'w+') as output_stream:
-                keep_data = filter(keep, self.file_to_stream(file_name))
-                self.strategy.write(output_stream, [v for v in keep_data])
+            keep_data = filter(keep, self.file_to_stream(file_name))
+            self.rewrite(file_name, [v for v in keep_data])
 
     def clear(self):
         for file_name in self.strategy.file_stream():
@@ -250,3 +270,42 @@ class ComposedStrategy(FileRepository.Strategy[E]):
 
     def pk_for(self, item: E) -> Hashable:
         return self.pk_factory(item)
+
+
+class FileRepositoryFactory:
+
+    def __init__(self, base_path: str):
+        self.base_path = base_path
+
+    def create(self, entity: Entity) -> FileRepository:
+        serializer = Serializer.toml() if entity.singleton else Serializer.yaml()
+        if entity.singleton:
+            file_strategy = SingleFileStrategy(
+                os.path.join(self.base_path, '{}.{}'.format(entity.name, serializer.default_extension))
+            )
+        elif entity.parent is None:
+            file_strategy = MultipleFileStrategy(
+                os.path.join(self.base_path, '{}/{{pk}}/main.{}'.format(entity.name, serializer.default_extension)),
+                {
+                    'pk': Vars.key(entity.pk)
+                }
+            )
+        else:
+            file_strategy = MultipleFileStrategy(
+                os.path.join(self.base_path, '{}/{{parent_id}}/{}.{}'.format(
+                    entity.parent.name,
+                    entity.name,
+                    serializer.default_extension
+                )),
+                {
+                    'parent_id': Vars.key(entity.parent.parent_id),
+                }
+            )
+        serializer_strategy = OnePerFileStrategy(serializer) if entity.singleton else ManyPerFileStrategy(serializer)
+        pk_factory = (lambda _: 0) if entity.singleton else Vars.key(entity.pk)
+        strategy = ComposedStrategy(
+            file_strategy=file_strategy,
+            serialize_strategy=serializer_strategy,
+            pk_factory=pk_factory,
+        )
+        return FileRepository(strategy)
