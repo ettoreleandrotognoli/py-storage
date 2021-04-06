@@ -24,11 +24,11 @@ class BaseVar(Var[E, V]):
 
     @force_var
     def __eq__(self, other: Var) -> Predicate[Any]:
-        return Comparison(self, other, operator.eq)
+        return EqualComparison(self, other)
 
     @force_var
     def __ne__(self, other):
-        return Comparison(self, other, operator.ne)
+        return NotEqualComparison(self, other)
 
     @force_var
     def __gt__(self, other: Var) -> Predicate[Any]:
@@ -88,6 +88,17 @@ class BaseVar(Var[E, V]):
     def __call__(self, item: E) -> V:
         raise NotImplementedError()
 
+    def optimize(self) -> Var[E]:
+        return self
+
+    def equals(self, other: Var) -> bool:
+        if self.__class__ != other.__class__:
+            return False
+        for self_item, other_item in zip(self.__dict__.items(), other.__dict__.items()):
+            if self_item != other_item:
+                return False
+        return True
+
 
 class Comparison(BaseVar):
 
@@ -98,6 +109,47 @@ class Comparison(BaseVar):
 
     def __call__(self, item: E) -> bool:
         return self.op(self.var_a(item), self.var_b(item))
+
+    def __repr__(self):
+        return f'("{self.op.__name__}", {self.var_a}, {self.var_b})'
+
+
+class EqualComparison(BaseVar[Any, bool]):
+    def __init__(self, var_a: Var, var_b: Var):
+        self.var_a = var_a
+        self.var_b = var_b
+
+    def __call__(self, item: E) -> bool:
+        return self.var_a(item) == self.var_b(item)
+
+    def optimize(self) -> Var[E]:
+        opt_var_a = self.var_a.optimize()
+        opt_var_b = self.var_b.optimize()
+        if opt_var_a.equals(opt_var_b):
+            return Vars.const(True)
+        return EqualComparison(opt_var_a, opt_var_b)
+
+    def __repr__(self):
+        return f'("eq", {self.var_a}, {self.var_b})'
+
+
+class NotEqualComparison(BaseVar[Any, bool]):
+    def __init__(self, var_a: Var, var_b: Var):
+        self.var_a = var_a
+        self.var_b = var_b
+
+    def __call__(self, item: E) -> bool:
+        return self.var_a(item) != self.var_b(item)
+
+    def optimize(self) -> Var[E]:
+        opt_var_a = self.var_a.optimize()
+        opt_var_b = self.var_b.optimize()
+        if opt_var_a.equals(opt_var_b):
+            return Vars.const(False)
+        return NotEqualComparison(opt_var_a, opt_var_b)
+
+    def __repr__(self):
+        return f'("ne", {self.var_a}, {self.var_b})'
 
 
 class CastOperator(BaseVar[E, V]):
@@ -126,6 +178,12 @@ class NotOperator(BaseVar[E, V]):
     def __call__(self, item: E) -> V:
         return not self.inner_var(item)
 
+    def optimize(self) -> Var[E]:
+        inner_var = self.inner_var.optimize()
+        if Const.is_const(inner_var):
+            return Const(not inner_var.const)
+        return self
+
 
 class OrOperator(BaseVar[E, Any]):
 
@@ -137,11 +195,23 @@ class OrOperator(BaseVar[E, Any]):
         return OrOperator(self.inner_vars + (other,))
 
     def __call__(self, item: E) -> Any:
-        for predicate in self.inner_vars:
-            val = predicate(item)
+        for var in self.inner_vars:
+            val = var(item)
             if val:
                 return val
         return False
+
+    def optimize(self) -> Var[E]:
+        inner_vars = []
+        for var in self.inner_vars:
+            optimized_var = var.optimize()
+            if Const.is_true(optimized_var):
+                return optimized_var
+            inner_vars.append(optimized_var)
+        return OrOperator(tuple(inner_vars))
+
+    def __repr__(self):
+        return f'("or",{",".join(map(repr, self.inner_vars))})'
 
 
 class AndOperator(BaseVar[E, Any]):
@@ -152,10 +222,22 @@ class AndOperator(BaseVar[E, Any]):
         return AndOperator(self.inner_vars + (other,))
 
     def __call__(self, item: E) -> bool:
-        for predicate in self.inner_vars:
-            if not predicate(item):
+        for var in self.inner_vars:
+            if not var(item):
                 return False
         return True
+
+    def optimize(self) -> Var[E]:
+        inner_vars = []
+        for var in self.inner_vars:
+            optimized_var = var.optimize()
+            if Const.is_false(optimized_var):
+                return optimized_var
+            inner_vars.append(optimized_var)
+        return AndOperator(tuple(inner_vars))
+
+    def __repr__(self):
+        return f'("and",{",".join(map(repr, self.inner_vars))})'
 
 
 class ReduceOperator(BaseVar[Any, Any]):
@@ -163,6 +245,9 @@ class ReduceOperator(BaseVar[Any, Any]):
     def __init__(self, inner_vars: Tuple[Any, ...], op: Callable[[Any, Any], Any]):
         self.inner_vars = inner_vars
         self.op = op
+
+    def __repr__(self):
+        return f'("{self.op.__name__}",{",".join(map(repr, self.inner_vars))})'
 
     @force_var
     def __mul__(self, other: Var) -> Var:
@@ -200,23 +285,42 @@ class ReduceOperator(BaseVar[Any, Any]):
 
 class Const(BaseVar[Any, V]):
 
+    @classmethod
+    def is_const(cls, instance):
+        return isinstance(instance, (cls,))
+
+    @classmethod
+    def is_true(cls, instance):
+        if cls.is_const(instance):
+            return instance.const
+        return False
+
+    @classmethod
+    def is_false(cls, instance):
+        if cls.is_const(instance):
+            return not instance.const
+        return False
+
     def __init__(self, const: V):
         self.const = const
 
     def __invert__(self) -> Var:
         return Const(not self.const)
 
+    def __repr__(self):
+        return f'{repr(self.const)}'
+
     @force_var
     def __and__(self, other: Var) -> Var:
         if isinstance(other, (Const,)):
             return Const(self.const & other.const)
-        return ReduceOperator((self, other,), operator.and_)
+        return AndOperator((self, other,))
 
     @force_var
     def __or__(self, other: Var) -> Var:
         if isinstance(other, (Const,)):
             return Const(self.const | other.const)
-        return ReduceOperator((self, other,), operator.or_)
+        return OrOperator((self, other,))
 
     @force_var
     def __mul__(self, other: Var) -> Var:
@@ -270,20 +374,31 @@ class Func(BaseVar):
         return cls(func)
 
 
+class Keys(BaseVar):
+
+    def __init__(self, keys: Sequence[str]):
+        self.keys = keys
+
+    def __call__(self, item):
+        for key in self.keys:
+            if item is None:
+                return None
+            item = item.get(key, None)
+        return item
+
+    def __repr__(self) -> str:
+        return f'${{{".".join(self.keys)}}}'
+
+
 class Vars:
 
     @staticmethod
-    def key(key: str):
-        return Func.from_lambda(lambda it: it.get(key, None))
+    def key(key: str) -> Var[Any, Any]:
+        return Keys((key,))
 
     @staticmethod
-    def keys(keys: Sequence[str]):
-        def get(item: dict):
-            for key in keys and item is not None:
-                item = item.get(key, None)
-            return item
-
-        return Func.from_lambda(get)
+    def keys(keys: Sequence[str]) -> Var[Any, Any]:
+        return Keys(keys)
 
     @staticmethod
     def const(value: E) -> Var[Any, E]:

@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from storage.var.jsonpath import JsonPath
-from storage.var import Const
+from storage.var import Const, Keys, Vars
 
 
 class TestConst(TestCase):
@@ -143,3 +143,71 @@ class TestJsonPath(TestCase):
         }
         imc = JsonPath.single('$.weight') / JsonPath.single('$.height') ** 2
         self.assertEqual(imc(data), 75.6 / 1.8 ** 2)
+
+
+class TestKeys(TestCase):
+
+    def test_single_key(self):
+        id_value = 1
+        get_id = Keys(('id',))
+        obj = {'id': id_value}
+        self.assertEqual(get_id(obj), id_value)
+
+    def test_double_key(self):
+        id_value = 1
+        get_id = Keys(('parent', 'id',))
+        obj = {'parent': {'id': id_value}}
+        self.assertEqual(get_id(obj), id_value)
+
+
+class TestOptimize(TestCase):
+
+    def test_true_or(self):
+        var = Vars.const(True) | Vars.key('any')
+        optimized_var = var.optimize()
+        self.assertTrue(Const.is_true(optimized_var))
+
+    def test_or_true(self):
+        var = Vars.key('any') | Vars.const(True)
+        optimized_var = var.optimize()
+        self.assertTrue(Const.is_true(optimized_var))
+
+    def test_and_false(self):
+        var = Vars.key('any') & Vars.const(False)
+        optimized_var = var.optimize()
+        self.assertTrue(Const.is_false(optimized_var))
+
+    def test_false_and(self):
+        var = Vars.const(False) & Vars.key('any')
+        optimized_var = var.optimize()
+        self.assertTrue(Const.is_false(optimized_var))
+
+    def test_eq_same_key(self):
+        var = Vars.key('id') == Vars.key('id')
+        optimized_var = var.optimize()
+        self.assertTrue(Const.is_true(optimized_var))
+
+    def test_eq_same_keys(self):
+        var = Vars.keys(('parent', 'id',)) == Vars.keys(('parent', 'id',))
+        optimized_var = var.optimize()
+        self.assertTrue(Const.is_true(optimized_var))
+
+    def test_eq_same_const(self):
+        var = Vars.const('const') == Vars.const('const')
+        optimized_var = var.optimize()
+        self.assertTrue(Const.is_true(optimized_var))
+
+    def test_ne_same_key(self):
+        var = Vars.key('id') != Vars.key('id')
+        optimized_var = var.optimize()
+        self.assertTrue(Const.is_false(optimized_var))
+
+    def test_ne_same_keys(self):
+        var = Vars.keys(('parent', 'id',)) != Vars.keys(('parent', 'id',))
+        optimized_var = var.optimize()
+        self.assertTrue(Const.is_false(optimized_var))
+
+    def test_ne_same_const(self):
+        var = Vars.const('const') != Vars.const('const')
+        optimized_var = var.optimize()
+        self.assertTrue(Const.is_false(optimized_var))

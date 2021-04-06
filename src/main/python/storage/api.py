@@ -78,11 +78,19 @@ class Var(Generic[E, V]):
     def __call__(self, item: E) -> V:
         raise NotImplementedError()
 
-
-class Set(Generic[E]):
+    @abc.abstractmethod
+    def optimize(self) -> Var[E]:
+        raise NotImplementedError()
 
     @abc.abstractmethod
-    def __and__(self, other: Set[E]) -> Set[E]:
+    def equals(self, other: Var) -> bool:
+        raise NotImplementedError()
+
+
+class Setter(Generic[E]):
+
+    @abc.abstractmethod
+    def __and__(self, other: Setter[E]) -> Setter[E]:
         raise NotImplementedError()
 
     @abc.abstractmethod

@@ -3,7 +3,7 @@ from unittest import TestCase
 from storage.local.inmemory_repository import InMemoryRepository
 from storage.var import Vars
 from storage.predicate import Predicates
-from storage.set import Sets
+from storage.setter import Setters
 
 
 class TestInMemoryRepository(TestCase):
@@ -60,5 +60,5 @@ class TestInMemoryRepository(TestCase):
             initial_data=self.sample_content,
         )
         file_repository.update(
-            Sets.key('name', Vars.const('Updated ') + Vars.key('name')),
+            Setters.key('name', Vars.const('Updated ') + Vars.key('name')),
         )
