@@ -11,7 +11,7 @@ else:
 
 def serializedATN():
     with StringIO() as buf:
-        buf.write("\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\24")
+        buf.write("\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\23")
         buf.write("[\4\2\t\2\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b")
         buf.write("\t\b\4\t\t\t\4\n\t\n\3\2\3\2\3\2\3\2\3\2\3\2\5\2\33\n")
         buf.write("\2\3\2\3\2\3\2\3\2\3\2\3\2\7\2#\n\2\f\2\16\2&\13\2\3\3")
@@ -19,8 +19,8 @@ def serializedATN():
         buf.write("\65\n\5\3\6\3\6\3\6\3\6\5\6;\n\6\3\7\3\7\3\7\3\7\7\7A")
         buf.write("\n\7\f\7\16\7D\13\7\3\7\3\7\3\7\3\7\3\7\3\7\7\7L\n\7\f")
         buf.write("\7\16\7O\13\7\3\7\3\7\5\7S\n\7\3\b\3\b\3\t\3\t\3\n\3\n")
-        buf.write("\3\n\2\3\2\13\2\4\6\b\n\f\16\20\22\2\4\3\2\t\n\3\2\21")
-        buf.write("\22\2]\2\32\3\2\2\2\4\'\3\2\2\2\6-\3\2\2\2\b\64\3\2\2")
+        buf.write("\3\n\2\3\2\13\2\4\6\b\n\f\16\20\22\2\4\3\2\t\n\3\2\20")
+        buf.write("\21\2]\2\32\3\2\2\2\4\'\3\2\2\2\6-\3\2\2\2\b\64\3\2\2")
         buf.write("\2\n:\3\2\2\2\fR\3\2\2\2\16T\3\2\2\2\20V\3\2\2\2\22X\3")
         buf.write("\2\2\2\24\25\b\2\1\2\25\26\7\3\2\2\26\27\5\2\2\2\27\30")
         buf.write("\7\4\2\2\30\33\3\2\2\2\31\33\5\4\3\2\32\24\3\2\2\2\32")
@@ -29,8 +29,8 @@ def serializedATN():
         buf.write("\"\37\3\2\2\2#&\3\2\2\2$\"\3\2\2\2$%\3\2\2\2%\3\3\2\2")
         buf.write("\2&$\3\2\2\2\'(\5\6\4\2()\5\b\5\2)*\5\6\4\2*\5\3\2\2\2")
         buf.write("+.\5\n\6\2,.\7\17\2\2-+\3\2\2\2-,\3\2\2\2.\7\3\2\2\2/")
-        buf.write("\65\7\r\2\2\60\65\7\16\2\2\61\62\7\5\2\2\62\63\7\20\2")
-        buf.write("\2\63\65\7\5\2\2\64/\3\2\2\2\64\60\3\2\2\2\64\61\3\2\2")
+        buf.write("\60\7\5\2\2\60\61\7\17\2\2\61\65\7\5\2\2\62\65\7\r\2\2")
+        buf.write("\63\65\7\16\2\2\64/\3\2\2\2\64\62\3\2\2\2\64\63\3\2\2")
         buf.write("\2\65\t\3\2\2\2\66;\5\16\b\2\67;\5\22\n\28;\5\20\t\29")
         buf.write(";\5\f\7\2:\66\3\2\2\2:\67\3\2\2\2:8\3\2\2\2:9\3\2\2\2")
         buf.write(";\13\3\2\2\2<=\7\3\2\2=B\5\n\6\2>?\7\6\2\2?A\5\n\6\2@")
@@ -39,7 +39,7 @@ def serializedATN():
         buf.write("\2JL\5\n\6\2KI\3\2\2\2LO\3\2\2\2MK\3\2\2\2MN\3\2\2\2N")
         buf.write("P\3\2\2\2OM\3\2\2\2PQ\7\b\2\2QS\3\2\2\2R<\3\2\2\2RG\3")
         buf.write("\2\2\2S\r\3\2\2\2TU\t\2\2\2U\17\3\2\2\2VW\t\3\2\2W\21")
-        buf.write("\3\2\2\2XY\7\23\2\2Y\23\3\2\2\2\13\32\"$-\64:BMR")
+        buf.write("\3\2\2\2XY\7\22\2\2Y\23\3\2\2\2\13\32\"$-\64:BMR")
         return buf.getvalue()
 
 
@@ -53,13 +53,15 @@ class RSQLParser ( Parser ):
 
     sharedContextCache = PredictionContextCache()
 
-    literalNames = [ "<INVALID>", "'('", "')'", "'='", "','", "'['", "']'" ]
+    literalNames = [ "<INVALID>", "'('", "')'", "'='", "','", "'['", "']'", 
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
+                     "'=='", "'!='" ]
 
     symbolicNames = [ "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                       "<INVALID>", "<INVALID>", "<INVALID>", "TRUE", "FALSE", 
                       "AND_OPERATOR", "OR_OPERATOR", "EQ", "NE", "IDENTIFIER", 
-                      "CMP_IDENTIFIER", "INT_LITERAL", "DECIMAL_LITERAL", 
-                      "STRING_LITERAL", "STRING_ESCAPE_SEQ" ]
+                      "INT_LITERAL", "DECIMAL_LITERAL", "STRING_LITERAL", 
+                      "STRING_ESCAPE_SEQ" ]
 
     RULE_statement = 0
     RULE_comparison = 1
@@ -89,11 +91,10 @@ class RSQLParser ( Parser ):
     EQ=11
     NE=12
     IDENTIFIER=13
-    CMP_IDENTIFIER=14
-    INT_LITERAL=15
-    DECIMAL_LITERAL=16
-    STRING_LITERAL=17
-    STRING_ESCAPE_SEQ=18
+    INT_LITERAL=14
+    DECIMAL_LITERAL=15
+    STRING_LITERAL=16
+    STRING_ESCAPE_SEQ=17
 
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
@@ -230,7 +231,7 @@ class RSQLParser ( Parser ):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.left = None # ExpressionContext
-            self.op = None # ComparatorContext
+            self.cmp = None # ComparatorContext
             self.right = None # ExpressionContext
 
         def expression(self, i:int=None):
@@ -265,7 +266,7 @@ class RSQLParser ( Parser ):
             self.state = 37
             localctx.left = self.expression()
             self.state = 38
-            localctx.op = self.comparator()
+            localctx.cmp = self.comparator()
             self.state = 39
             localctx.right = self.expression()
         except RecognitionException as re:
@@ -337,16 +338,15 @@ class RSQLParser ( Parser ):
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
             self.parser = parser
-            self.op = None # Token
+
+        def IDENTIFIER(self):
+            return self.getToken(RSQLParser.IDENTIFIER, 0)
 
         def EQ(self):
             return self.getToken(RSQLParser.EQ, 0)
 
         def NE(self):
             return self.getToken(RSQLParser.NE, 0)
-
-        def CMP_IDENTIFIER(self):
-            return self.getToken(RSQLParser.CMP_IDENTIFIER, 0)
 
         def getRuleIndex(self):
             return RSQLParser.RULE_comparator
@@ -368,24 +368,24 @@ class RSQLParser ( Parser ):
             self.state = 50
             self._errHandler.sync(self)
             token = self._input.LA(1)
-            if token in [RSQLParser.EQ]:
+            if token in [RSQLParser.T__2]:
                 self.enterOuterAlt(localctx, 1)
                 self.state = 45
-                localctx.op = self.match(RSQLParser.EQ)
-                pass
-            elif token in [RSQLParser.NE]:
-                self.enterOuterAlt(localctx, 2)
+                self.match(RSQLParser.T__2)
                 self.state = 46
-                localctx.op = self.match(RSQLParser.NE)
-                pass
-            elif token in [RSQLParser.T__2]:
-                self.enterOuterAlt(localctx, 3)
+                self.match(RSQLParser.IDENTIFIER)
                 self.state = 47
                 self.match(RSQLParser.T__2)
+                pass
+            elif token in [RSQLParser.EQ]:
+                self.enterOuterAlt(localctx, 2)
                 self.state = 48
-                localctx.op = self.match(RSQLParser.CMP_IDENTIFIER)
+                self.match(RSQLParser.EQ)
+                pass
+            elif token in [RSQLParser.NE]:
+                self.enterOuterAlt(localctx, 3)
                 self.state = 49
-                self.match(RSQLParser.T__2)
+                self.match(RSQLParser.NE)
                 pass
             else:
                 raise NoViableAltException(self)

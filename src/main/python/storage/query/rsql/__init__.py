@@ -17,6 +17,16 @@ def parse(rsql: str) -> Predicate[Any]:
 
 
 class StorageQueryVisitor(RSQLVisitor):
+    supported_comparisons = {
+        'eq': operator.eq,
+        'ne': operator.ne,
+        'gt': operator.gt,
+        'ge': operator.ge,
+        'lt': operator.lt,
+        'le': operator.le,
+        'in': lambda a, b: b.__contains__(a),
+        'contains': lambda a, b: a.__contains__(b),
+    }
 
     def visitStatement(self, ctx: RSQLParser.StatementContext):
         if ctx.wrapped:
@@ -31,9 +41,9 @@ class StorageQueryVisitor(RSQLVisitor):
         return self.visit(ctx.node)
 
     def visitComparison(self, ctx: RSQLParser.ComparisonContext):
+        comparator = self.visit(ctx.cmp)
         left = self.visit(ctx.left)
         right = self.visit(ctx.right)
-        comparator = self.visit(ctx.comparator())
         return comparator(left, right)
 
     def visitExpression(self, ctx: RSQLParser.ExpressionContext):
@@ -44,12 +54,14 @@ class StorageQueryVisitor(RSQLVisitor):
     def visitComparator(self, ctx: RSQLParser.ComparatorContext):
         if ctx.EQ():
             return operator.eq
-        elif ctx.NE():
+        if ctx.NE():
             return operator.ne
-        elif ctx.CMP_IDENTIFIER():
-            raise NotImplementedError()
-        else:
-            raise NotImplementedError()
+        if ctx.IDENTIFIER():
+            textual = ctx.IDENTIFIER().getText()
+            if textual not in self.supported_comparisons:
+                raise NotImplementedError(ctx)
+            return self.supported_comparisons[textual]
+        return self.visitChildren(ctx)
 
     def visitValue(self, ctx: RSQLParser.ValueContext):
         if ctx.boolean:
@@ -64,7 +76,7 @@ class StorageQueryVisitor(RSQLVisitor):
             raise NotImplementedError(ctx)
 
     def visitArray_value(self, ctx: RSQLParser.Array_valueContext):
-        return Vars.const(tuple([ self.visit(value) for value in ctx.value()]))
+        return Vars.const(tuple([self.visit(value) for value in ctx.value()]))
 
     def visitString_literal(self, ctx: RSQLParser.String_literalContext):
         if ctx.STRING_LITERAL():

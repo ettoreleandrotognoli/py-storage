@@ -13,7 +13,7 @@ statement
 
 
 comparison
-    : left=expression op=comparator right=expression
+    : left=expression cmp=comparator right=expression
     ;
 
 
@@ -26,22 +26,18 @@ TRUE: 'true' | 'True' | 't' | 'T' ;
 FALSE: 'false' | 'False' | 'f' | 'F' ;
 AND_OPERATOR: ';' | '&';
 OR_OPERATOR: ',' | '|';
-EQ: '=eq=' | '==';
-NE: '=ne=' | '!=';
+EQ: '==';
+NE: '!=';
 
 
 IDENTIFIER
  : [a-zA-Z_] [a-zA-Z_0-9]*
  ;
 
-CMP_IDENTIFIER
-   : [a-zA-Z_]+
-   ;
-
 comparator
-    : op=EQ
-    | op=NE
-    | '=' op=CMP_IDENTIFIER '='
+    : '=' IDENTIFIER '='
+    | EQ
+    | NE
     ;
 
 value
