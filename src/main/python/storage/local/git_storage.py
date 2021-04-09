@@ -4,8 +4,8 @@ import abc
 import logging
 import tempfile
 from logging import Logger
-
-from git import Repo
+from typing import Tuple
+from git import Repo, Actor
 
 from storage import MutableStorageSession, E, MutableRepository, Repository, Entity
 from storage.api import SessionSupportStorage
@@ -58,7 +58,18 @@ class SessionStrategy:
         def on_rewrite(self, file_name):
             pass
 
+        @classmethod
+        def create(cls, **defaults):
+            return lambda storage, message: cls(storage, message, **defaults)
+
     class AddAndCommit(BaseSessionStrategy):
+
+        def __init__(self, storage: GitStorage, message: str,
+                     author: Tuple[str, str] = None,
+                     committer: Tuple[str, str] = None):
+            super().__init__(storage, message)
+            self.author = None if author is None else Actor(*author)
+            self.committer = None if committer is None else Actor(*committer)
 
         def on_rewrite(self, file_name):
             self.storage.repo.index.add(file_name)
@@ -68,18 +79,41 @@ class SessionStrategy:
             self.storage.repo.git.clean('.', force=True)
 
         def on_success(self):
-            self.storage.repo.index.commit(self.message)
+            self.storage.repo.index.commit(
+                self.message,
+                author=self.author,
+                committer=self.committer,
+            )
 
     class PullAddAndCommit(AddAndCommit):
 
-        def on_begin(self):
-            self.storage.repo.git.pull(rebase=True)
+        def __init__(self, storage: GitStorage, message: str,
+                     author: Tuple[str, str] = None, committer: Tuple[str, str] = None,
+                     remote='origin', branch='master'):
+            super().__init__(storage, message, author=author, committer=committer)
+            self.pull_remote = remote
+            self.pull_branch = branch
 
-    class PullAddCommitAndPush(PullAddAndCommit):
+        def on_begin(self):
+            remote = self.storage.repo.remote(self.pull_remote)
+            remote.pull(self.pull_branch, rebase=True)
+
+    class AddCommitAndPush(AddAndCommit):
+
+        def __init__(self, storage: GitStorage, message: str,
+                     author: Tuple[str, str] = None, committer: Tuple[str, str] = None,
+                     remote='origin', branch='master'):
+            super().__init__(storage, message, author=author, committer=committer)
+            self.push_remote = remote
+            self.push_branch = branch
 
         def on_success(self):
             super().on_success()
-            self.storage.repo.git.push()
+            remote = self.storage.repo.remote(self.push_remote)
+            remote.push(self.push_branch)
+
+    class PullAddCommitAndPush(PullAddAndCommit, AddCommitAndPush):
+        pass
 
 
 class GitStorage(SessionSupportStorage):
@@ -100,6 +134,10 @@ class GitStorage(SessionSupportStorage):
 
     def repository_for(self, item_type: Entity[E]) -> Repository[E]:
         return self.mutable_repository_for(item_type)
+
+    @classmethod
+    def from_repo(cls, repo: Repo, **kwargs):
+        return cls(repo.working_dir, **kwargs)
 
     @classmethod
     def create_from_url(cls, git_url: str, target: str = None, **kwargs):
