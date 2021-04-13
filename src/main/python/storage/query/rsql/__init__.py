@@ -2,9 +2,9 @@ from antlr4 import InputStream, CommonTokenStream
 import ast
 import operator
 from typing import Any
-from storage.query.rsql.RSQLVisitor import RSQLVisitor
-from storage.query.rsql.RSQLLexer import RSQLLexer
-from storage.query.rsql.RSQLParser import RSQLParser
+from storage.query.rsql.gen.RSQLVisitor import RSQLVisitor
+from storage.query.rsql.gen.RSQLLexer import RSQLLexer
+from storage.query.rsql.gen.RSQLParser import RSQLParser
 from storage.api import Predicate
 from storage.var import Vars
 
