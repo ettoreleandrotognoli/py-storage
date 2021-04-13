@@ -1,0 +1,26 @@
+on:
+  pull_request:
+    branches:
+      - master
+      - devel
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependecies
+        uses: VaultVulp/action-pipenv@v2.0.1
+        with:
+          command: install -d
+      - uses: VaultVulp/action-pipenv@v2.0.1
+        with:
+          command: run coverage
+      - uses: VaultVulp/action-pipenv@v2.0.1
+        id: coverage-report
+        with:
+          command: run coverage-report | sed -E "s/[ ^]+/ \| /g" | sed -E "s/-+/\|---\|---\|---\|---\|/g" | tee .github/workflows/coverage-report.md
+      - uses: harupy/comment-on-pr@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          filename: coverage-report.md
