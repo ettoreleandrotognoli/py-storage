@@ -15,6 +15,7 @@ antlr4-python3-runtime = "==4.8.*"
 autopep8 = "*"
 faker = "*"
 coverage = "*"
+twine = "*"
 
 [requires]
 python_version = "3.7"
@@ -26,3 +27,4 @@ coverage-report = "coverage report --fail-under=80"
 coverage-html-report = "coverage html"
 coverage-xml-report = "coverage xml"
 compile-antlr = "antlr4 -Dlanguage=Python3 -Xexact-output-dir -visitor -no-listener -o src/main/python/storage/query/rsql/ src/main/antlr/RSQL.g4"
+twine-upload = "twine upload dist/*"
