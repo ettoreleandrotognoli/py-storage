@@ -355,7 +355,7 @@ class Const(BaseVar[Any, V]):
     def cast(self, cast_fn: Callable):
         if isinstance(cast_fn, (type,)) and isinstance(self.const, cast_fn):
             return self
-        return CastOperator(cast_fn, self)
+        return Const(cast_fn(self.const))
 
     def __call__(self, item: Any = None) -> V:
         return self.const
@@ -376,7 +376,7 @@ class Func(BaseVar):
 
 class Keys(BaseVar):
 
-    def __init__(self, keys: Sequence[str]):
+    def __init__(self, keys: Sequence[str] = ()):
         self.keys = keys
 
     def __call__(self, item):

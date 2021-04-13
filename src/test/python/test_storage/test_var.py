@@ -115,6 +115,16 @@ class TestConst(TestCase):
         value = var(None)
         self.assertEqual(value, -6)
 
+    def test_cast_int_to_int(self):
+        var = Const(1).cast(int)
+        value = var(None)
+        self.assertIsInstance(value, int)
+
+    def test_cast_str_to_int(self):
+        var = Const('1').cast(int)
+        value = var(None)
+        self.assertIsInstance(value, int)
+
 
 class TestJsonPath(TestCase):
 
@@ -158,6 +168,21 @@ class TestKeys(TestCase):
         get_id = Keys(('parent', 'id',))
         obj = {'parent': {'id': id_value}}
         self.assertEqual(get_id(obj), id_value)
+
+    def test_cast_int_to_int(self):
+        var = Keys().cast(int)
+        value = var(1)
+        self.assertIsInstance(value, int)
+
+    def test_cast_str_to_int(self):
+        var = Keys().cast(int)
+        value = var('1')
+        self.assertIsInstance(value, int)
+
+    def test_cast_twice(self):
+        var = Keys().cast(int).cast(int)
+        value = var('1')
+        self.assertIsInstance(value, int)
 
 
 class TestOptimize(TestCase):
