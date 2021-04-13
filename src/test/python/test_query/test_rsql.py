@@ -4,7 +4,17 @@ from storage.query.rsql import parse
 
 class RSQLTest(TestCase):
 
-    def test_const_symbolic_eq_const_when_eq_should_be_true(self):
+    def test_parse_true_boolean(self):
+        rsql = 'true==t'
+        parsed = parse(rsql)
+        self.assertTrue(parsed(None))
+
+    def test_parse_false_boolean(self):
+        rsql = 'false==f'
+        parsed = parse(rsql)
+        self.assertTrue(parsed(None))
+
+    def test_const_number_symbolic_eq_const_number_when_eq_should_be_true(self):
         rsql = '1==1'
         parsed = parse(rsql)
         self.assertTrue(parsed(None))
